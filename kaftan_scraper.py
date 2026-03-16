@@ -213,7 +213,7 @@ def add_or_replace_query_param(url, key, value):
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
 
 
-def get_first_main_image_src(product, preferred_width=1200):
+def get_first_main_image_src(product, preferred_width=400):
     # Shopify exposes the primary image in product['image']; fallback to first product['images'] entry.
     main_image = product.get("image")
     if isinstance(main_image, dict):

@@ -150,18 +150,30 @@ def get_style(product_data):
     return product_data.get("type") or product_data.get("product_type") or ""
 
 
+def cap_image_width(url, width=400):
+    """Append/replace the Shopify CDN width param to limit download size."""
+    if not url:
+        return url
+    from urllib.parse import parse_qsl, urlencode, urlunparse
+    parsed = urlparse(url)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    query["width"] = str(width)
+    new_query = urlencode(query)
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+
+
 def get_image_url(product_data):
     images = product_data.get("images", []) or []
 
     if images and isinstance(images[0], str):
-        return normalize_url(images[0])
+        return cap_image_width(normalize_url(images[0]))
 
     if images and isinstance(images[0], dict):
-        return normalize_url(images[0].get("src", ""))
+        return cap_image_width(normalize_url(images[0].get("src", "")))
 
     featured = product_data.get("featured_image")
     if isinstance(featured, str) and featured.strip():
-        return normalize_url(featured)
+        return cap_image_width(normalize_url(featured))
 
     return ""
 
