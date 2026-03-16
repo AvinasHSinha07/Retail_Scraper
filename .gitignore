@@ -1,0 +1,12 @@
+credentials.json
+token.json
+_pycache__/
+venv/  
+.DS_Store
+.idea/
+*.log
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.swp
