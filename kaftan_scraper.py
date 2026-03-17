@@ -426,8 +426,8 @@ def previous_rows_by_key(rows, id_field):
 def merge_with_previous(current_rows, previous_rows, id_field, fieldnames):
     """
     If a product existed in previous output but is missing in current output,
-    append it with is_available=0.
-    Use ONLY for full runs, not test runs with small max_products.
+    keep its previous row as-is.
+    This prevents partial runs from flipping unchecked products to unavailable.
     """
     current_map = previous_rows_by_key(current_rows, id_field)
     previous_map = previous_rows_by_key(previous_rows, id_field)
@@ -437,7 +437,6 @@ def merge_with_previous(current_rows, previous_rows, id_field, fieldnames):
     for key, prev_row in previous_map.items():
         if key not in current_map:
             row = dict(prev_row)
-            row["is_available"] = "0"
             cleaned = {field: row.get(field, "") for field in fieldnames}
             merged.append(cleaned)
 
@@ -728,18 +727,17 @@ def main():
             seen_ids.add(product_id)
         deduped_rows.append(row)
 
-    if COMPARE_WITH_PREVIOUS:
-        previous_rows = load_previous_rows_from_sheet(
-            sheets_service=sheets_service,
-            spreadsheet_id=SHEET_ID,
-            sheet_name=SHEET_NAME,
-        )
-        deduped_rows = merge_with_previous(
-            current_rows=deduped_rows,
-            previous_rows=previous_rows,
-            id_field="id",
-            fieldnames=SALE_FIELDS,
-        )
+    previous_rows = load_previous_rows_from_sheet(
+        sheets_service=sheets_service,
+        spreadsheet_id=SHEET_ID,
+        sheet_name=SHEET_NAME,
+    )
+    deduped_rows = merge_with_previous(
+        current_rows=deduped_rows,
+        previous_rows=previous_rows,
+        id_field="id",
+        fieldnames=SALE_FIELDS,
+    )
 
     save_sheet(
         sheets_service=sheets_service,

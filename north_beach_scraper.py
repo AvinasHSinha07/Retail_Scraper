@@ -384,6 +384,11 @@ def previous_rows_by_key(rows, id_field):
 
 
 def merge_with_previous(current_rows, previous_rows, id_field, fieldnames):
+    """
+    If a product existed in previous output but is missing in current output,
+    keep its previous row as-is.
+    This prevents partial runs from flipping unchecked products to unavailable.
+    """
     current_map = previous_rows_by_key(current_rows, id_field)
     previous_map = previous_rows_by_key(previous_rows, id_field)
 
@@ -392,7 +397,6 @@ def merge_with_previous(current_rows, previous_rows, id_field, fieldnames):
     for key, prev_row in previous_map.items():
         if key not in current_map:
             row = dict(prev_row)
-            row["is_available"] = "0"
             cleaned = {field: row.get(field, "") for field in fieldnames}
             merged.append(cleaned)
 
@@ -886,36 +890,29 @@ def main():
     sale_rows = build_sale_rows(SESSION, drive_service=drive_service)
     collection_rows = build_collection_rows(SESSION, drive_service=drive_service)
 
-    should_compare = COMPARE_WITH_PREVIOUS and MAX_PRODUCTS_PER_COLLECTION is None
-    if should_compare:
-        previous_sale_rows = load_previous_rows_from_sheet(
-            sheets_service=sheets_service,
-            spreadsheet_id=SHEET_ID,
-            sheet_name=SALE_SHEET_NAME,
-        )
-        sale_rows = merge_with_previous(
-            current_rows=sale_rows,
-            previous_rows=previous_sale_rows,
-            id_field="id",
-            fieldnames=sale_fields,
-        )
+    previous_sale_rows = load_previous_rows_from_sheet(
+        sheets_service=sheets_service,
+        spreadsheet_id=SHEET_ID,
+        sheet_name=SALE_SHEET_NAME,
+    )
+    sale_rows = merge_with_previous(
+        current_rows=sale_rows,
+        previous_rows=previous_sale_rows,
+        id_field="id",
+        fieldnames=sale_fields,
+    )
 
-        previous_collection_rows = load_previous_rows_from_sheet(
-            sheets_service=sheets_service,
-            spreadsheet_id=SHEET_ID,
-            sheet_name=COLLECTION_SHEET_NAME,
-        )
-        collection_rows = merge_with_previous(
-            current_rows=collection_rows,
-            previous_rows=previous_collection_rows,
-            id_field="Id",
-            fieldnames=collection_fields,
-        )
-    elif COMPARE_WITH_PREVIOUS:
-        print(
-            "Skipping previous-row merge because MAX_PRODUCTS_PER_COLLECTION is set "
-            "(test/partial run)."
-        )
+    previous_collection_rows = load_previous_rows_from_sheet(
+        sheets_service=sheets_service,
+        spreadsheet_id=SHEET_ID,
+        sheet_name=COLLECTION_SHEET_NAME,
+    )
+    collection_rows = merge_with_previous(
+        current_rows=collection_rows,
+        previous_rows=previous_collection_rows,
+        id_field="Id",
+        fieldnames=collection_fields,
+    )
 
     save_sheet(
         sheets_service=sheets_service,
