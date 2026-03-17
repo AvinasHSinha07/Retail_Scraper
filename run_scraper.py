@@ -2,6 +2,7 @@ import camilla_scraper
 import czarina_scraper
 import kaftan_scraper
 import aribella_scraper
+import north_beach_scraper
 
 
 def prompt_scraper_choice():
@@ -11,13 +12,14 @@ def prompt_scraper_choice():
         print("2. Czarina")
         print("3. Kaftan")
         print("4. Aribella")
-        print("5. Run All")
-        choice = input("Enter 1, 2, 3, 4, or 5: ").strip()
+        print("5. North Beach")
+        print("6. Run All")
+        choice = input("Enter 1, 2, 3, 4, 5, or 6: ").strip()
 
-        if choice in {"1", "2", "3", "4", "5"}:
+        if choice in {"1", "2", "3", "4", "5", "6"}:
             return choice
 
-        print("Invalid choice. Please enter 1, 2, 3, 4, or 5.\n")
+        print("Invalid choice. Please enter 1, 2, 3, 4, 5, or 6.\n")
 
 
 def prompt_max_products():
@@ -64,23 +66,33 @@ def run_selected_scraper(choice, max_products):
         aribella_scraper.main()
         return
 
+    if choice == "5":
+        print("\nRunning North Beach scraper...")
+        north_beach_scraper.MAX_PRODUCTS_PER_COLLECTION = max_products
+        north_beach_scraper.main()
+        return
+
     print("\nRunning all scrapers...")
 
-    print("\n[1/4] Camilla...")
+    print("\n[1/5] Camilla...")
     camilla_scraper.MAX_PRODUCTS_PER_COLLECTION = max_products
     camilla_scraper.main()
 
-    print("\n[2/4] Czarina...")
+    print("\n[2/5] Czarina...")
     czarina_scraper.MAX_PRODUCTS_PER_COLLECTION = max_products
     czarina_scraper.main()
 
-    print("\n[3/4] Kaftan...")
+    print("\n[3/5] Kaftan...")
     kaftan_scraper.MAX_PRODUCTS_PER_COLLECTION = max_products
     kaftan_scraper.main()
 
-    print("\n[4/4] Aribella...")
+    print("\n[4/5] Aribella...")
     aribella_scraper.MAX_PRODUCTS_PER_COLLECTION = max_products
     aribella_scraper.main()
+
+    print("\n[5/5] North Beach...")
+    north_beach_scraper.MAX_PRODUCTS_PER_COLLECTION = max_products
+    north_beach_scraper.main()
 
 
 def main():
